@@ -5,8 +5,8 @@ import java.util.HashSet;
  * This utility class is not meant to be instantitated, and just provides some
  * useful methods on FD sets.
  * 
- * @author <<YOUR NAME>>
- * @version <<DATE>>
+ * @author Langston Aron
+ * @version 10/25/2022
  */
 public final class FDUtil {
 
@@ -19,8 +19,20 @@ public final class FDUtil {
   public static FDSet trivial(final FDSet fdset) {
     // TODO: Obtain the power set of each FD's left-hand attributes. For each
     // element in the power set, create a new FD and add it to the a new FDSet.
-
-    return null;
+	Set<FD> temp1 = fdset.getSet(); 
+	FD[] triv = temp1.toArray(new FD[0]);
+	FDSet trivial = new FDSet();
+	for(int c = 0; c < triv.length; c++) {
+		Set<Set<String>> right = powerSet(triv[c].getLeft());
+		Set<String>[] temp3 = right.toArray(new Set[0]);
+		for(int r = 1; r < temp3.length; r++) {
+			FD temp2 = new FD();
+			temp2.addToLeft(triv[c].getLeft());
+			temp2.addToRight(temp3[r]);
+			trivial.add(temp2);
+		}
+	}
+	return trivial;
   }
 
   /**
@@ -33,8 +45,18 @@ public final class FDUtil {
   public static FDSet augment(final FDSet fdset, final Set<String> attrs) {
     // TODO: Copy each FD in the given set and then union both sides with the given
     // set of attributes, and add this augmented FD to a new FDSet.
-
-    return null;
+	Set<FD> temp1 = fdset.getSet();
+	FD[] aug = temp1.toArray(new FD[temp1.size()]);
+	FDSet augment = new FDSet();
+	for(int c = 0; c < aug.length; c++) {
+		FD temp2 = new FD();
+		temp2.addToLeft(aug[c].getLeft());
+		temp2.addToLeft(attrs);
+		temp2.addToRight(aug[c].getRight());
+		temp2.addToRight(attrs);
+		augment.add(temp2);
+	}
+    return augment;
   }
 
   /**
@@ -47,8 +69,28 @@ public final class FDUtil {
     // TODO: Examine each pair of FDs in the given set. If the transitive property
     // holds on the pair of FDs, then generate the new FD and add it to a new FDSet.
     // Repeat until no new transitive FDs are found.
-
-    return null;
+	Set<FD> temp1 = fdset.getSet();
+	FD[] tran = temp1.toArray(new FD[temp1.size()]);
+	FDSet transitive = new FDSet();
+	for(int c = 0; c < tran.length; c++) {
+		for(int r = 0; r < tran.length; r++) {
+			if(tran[c].getRight().equals(tran[r].getLeft())) {
+				FD temp2 = new FD();
+				temp2.addToLeft(tran[c].getLeft());
+				temp2.addToRight(tran[r].getRight());
+				transitive.add(temp2);
+				for(int k = 0; k < tran.length; k++) {
+					if(temp2.getRight().equals(tran[k].getLeft())) {
+						FD temp3 = new FD();
+						temp3.addToLeft(tran[c].getLeft());
+						temp3.addToRight(tran[k].getRight());
+						transitive.add(temp3);
+					}
+				}
+			}
+		}
+	}
+    return transitive;
   }
 
   /**
@@ -63,8 +105,18 @@ public final class FDUtil {
     // TODO: Generate new FDs by applying Trivial and Augmentation Rules, followed
     // by Transitivity Rule, and add new FDs to the result.
     // Repeat until no further changes are detected.
-
-    return null;
+	FDSet tempA = fdset;
+	FDSet tempB = new FDSet();
+	while(!tempA.equals(tempB)) {
+		Set<FD> temp1 = tempA.getSet();
+		FD[] aug = temp1.toArray(new FD[temp1.size()]);
+		for(int c = 0; c < aug.length; c++) {
+			tempB.addAll(augment(tempA, aug[c].getLeft()));
+		}
+		tempB.addAll(trivial(tempA));
+		tempB.addAll(transitive(tempA));
+	}
+    return tempB;
   }
 
   /**
